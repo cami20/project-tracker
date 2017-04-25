@@ -110,11 +110,28 @@ ALTER SEQUENCE projects_id_seq OWNED BY projects.id;
 CREATE TABLE students (
     first_name character varying(30),
     last_name character varying(30),
-    github character varying(30)
+    github character varying(30) NOT NULL
 );
 
 
 ALTER TABLE students OWNER TO "user";
+
+--
+-- Name: report_card_view; Type: VIEW; Schema: public; Owner: user
+--
+
+CREATE VIEW report_card_view AS
+ SELECT students.first_name,
+    students.last_name,
+    projects.title,
+    projects.max_grade,
+    grades.grade
+   FROM ((students
+     JOIN grades ON (((students.github)::text = (grades.student_github)::text)))
+     JOIN projects ON (((projects.title)::text = (grades.project_title)::text)));
+
+
+ALTER TABLE report_card_view OWNER TO "user";
 
 --
 -- Name: id; Type: DEFAULT; Schema: public; Owner: user
@@ -146,6 +163,7 @@ COPY grades (id, student_github, project_title, grade) FROM stdin;
 9	sdevelops	Testing	60
 10	sdevelops	Shopping Cart	60
 11	sdevelops	Madlibs	50
+12	cami20	Blockly	100
 \.
 
 
@@ -153,7 +171,7 @@ COPY grades (id, student_github, project_title, grade) FROM stdin;
 -- Name: grades_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user
 --
 
-SELECT pg_catalog.setval('grades_id_seq', 11, true);
+SELECT pg_catalog.setval('grades_id_seq', 12, true);
 
 
 --
@@ -183,6 +201,9 @@ SELECT pg_catalog.setval('projects_id_seq', 5, true);
 COPY students (first_name, last_name, github) FROM stdin;
 Jane	Hacker	jhacks
 Sarah	Developer	sdevelops
+Angela	Lui	captainangela
+Camille	St.Martin	cami20
+Cat	Stevens	cattys10
 \.
 
 
@@ -200,6 +221,14 @@ ALTER TABLE ONLY grades
 
 ALTER TABLE ONLY projects
     ADD CONSTRAINT projects_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: students_pkey; Type: CONSTRAINT; Schema: public; Owner: user
+--
+
+ALTER TABLE ONLY students
+    ADD CONSTRAINT students_pkey PRIMARY KEY (github);
 
 
 --
